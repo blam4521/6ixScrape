@@ -1,25 +1,19 @@
 import craigslist_util as cgu
 reload(cgu)
 
+# Default search.
+cgu.search(param='apartments')
 
-AREAS = {'toronto': 'tor',
-         'durham_region': 'drh',
-         'york_region': 'yrk',
-         'brampton': 'bra',
-         'mississuaga': 'mss',
-         'oakville': 'oak'}
+# OPTIONAL: If you want to add region and category like housing, community, etc.
 
-PREFIX_TOPICS = {'community': 'ccc',
-                 'events': 'eee',
-                 'for_sale': 'sss',
-                 'gigs': 'ggg',
-                 'housing': 'hhh',
-                 'jobs': 'jjj',
-                 'resume': 'rrr',
-                 'services': 'bbb'}
+# Search with area filter and number of postings.
+# cgu.search(param='apartments',
+#            area=cgu.AREAS['brampton'], number_of_postings=3)
 
-# cgu.search(param='apartments', number_of_postings=1)
+# Search with category filter and number of postings.
+# cgu.search(param='apartments',
+#            category=cgu.CATEGORY_TOPICS['housing'], number_of_postings=1)
 
-# OPTIONAL: If you want to add region and topics like housing, community, etc.
-cgu.search(param='apartments',
-           area=AREAS['brampton'], prefix=PREFIX_TOPICS['housing'], number_of_postings=2)
+# Search with category and area filter and number of postings.
+# cgu.search(param='apartments',
+#            area=cgu.AREAS['brampton'], category=cgu.CATEGORY_TOPICS['housing'], number_of_postings=2)

@@ -1,4 +1,7 @@
+"""Util functions to help run generic searches for craigslist toronto"""
+
 from bs4 import BeautifulSoup as bs4
+from cachetools import cached, TTLCache
 from collections import OrderedDict
 import json
 import requests
@@ -6,32 +9,50 @@ import sys
 
 
 URL_BASE = 'https://toronto.craigslist.org'
+cache = TTLCache(maxsize=120, ttl=300)
+
+AREAS = {'toronto': 'tor',
+         'durham_region': 'drh',
+         'york_region': 'yrk',
+         'brampton': 'bra',
+         'mississuaga': 'mss',
+         'oakville': 'oak'}
+
+CATEGORY_TOPICS = {'community': 'ccc',
+                   'events': 'eee',
+                   'for_sale': 'sss',
+                   'gigs': 'ggg',
+                   'housing': 'hhh',
+                   'jobs': 'jjj',
+                   'resume': 'rrr',
+                   'services': 'bbb'}
 
 
-def get_search_query(param, area, prefix):
+@cached(cache)
+def get_search_query(param, area, category):
     """Make a get request to URL_BASE, with user defined parameters.
 
         Args:
+            param(str): user input on the type of object they are searching for.
 
-            Optional area(str): user input on the city they are searching for. 
+            OPTIONAL area(str): user input on the city they are searching for.
 
-            Optional prefix(str): user input on the topic they are searching for. 
-
-            param(str): user input on the type of object they are searching for. 
+            OPTIONAL category(str): user input on the topic they are searching for.
 
         Return:
             html(obj): a beautiful soup object with find methods.
     """
-    if area and prefix:
-        print('Using new url')
-        search_url = '/'.join([URL_BASE, 'search', area,
-                               prefix, '?query=%s' % param])
-    else:
-        search_url = '/'.join([URL_BASE, 'search', '?query=%s' % param])
-    # print(search_url)
+
+    search_url = URL_BASE + '/search'
+    if area:
+        search_url = search_url + '/%s' % area
+
+    if category:
+        search_url = search_url + '/%s' % category
+    search_url = search_url + '?query=%s' % param
+
     try:
         response = requests.get(search_url)
-        # print(response.url)
         response.raise_for_status()
         html = bs4(response.text, 'html.parser')
         return html
@@ -45,6 +66,8 @@ def search_results(html,  number_of_postings):
 
         Args:
             html(obj): a beautiful soup object with find methods.
+
+            number_of_postings(int): the number of postings to show user.
 
         Return:
             json(obj): a json output of the post title and date.
@@ -78,10 +101,23 @@ def search_results(html,  number_of_postings):
     return json_list_of_postings
 
 
-def search(param, area='', prefix='', number_of_postings=0):
-    """Main entry point to the script."""
+def search(param, area='', category='', number_of_postings=0):
+    """Main entry point to the script.
 
-    raw_html = get_search_query(param, area, prefix)
+    Args:
+            param(str): user input on the type of object they are searching for.
+
+            OPTIONAL area(str): user input on the city they are searching for.
+
+            OPTIONAL category(str): user input on the topic they are searching for.
+
+            OPTIONAL number_of_postings(int): the number of postings to show user.
+
+    Return:
+        search_results(obj): a list of objects.
+    """
+
+    raw_html = get_search_query(param, area, category)
     # Dont run the search results function if
     # raw_html returns a invalid URL.
     if raw_html:
